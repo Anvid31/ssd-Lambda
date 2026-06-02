@@ -1,0 +1,18 @@
+{
+  "name": "sdd-crypto-lambdas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lambda encrypt/decrypt flow using JWT (RS256) + JWE (RSA-OAEP/A256GCM).",
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:flow": "jest --runInBand tests/flow.integration.test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.529.0",
+    "jose": "^4.15.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

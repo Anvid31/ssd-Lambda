@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: sdd-crypto-lambdas - SAM template for encrypt/decrypt flow
+
+Parameters:
+  StageName:
+    Type: String
+    Default: dev
+    Description: API Gateway stage name
+  PrivateKeySecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:us-east-1:979667333545:secret:sdd-crypto/private-key-5WARf0
+    Description: ARN of the Secrets Manager secret containing the private PEM key
+  PublicKeySecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:us-east-1:979667333545:secret:sdd-crypto/public-key-wlmj1e
+    Description: ARN of the Secrets Manager secret containing the public PEM key
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 256
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        PRIVATE_KEY_SECRET_ARN: !Ref PrivateKeySecretArn
+        PUBLIC_KEY_SECRET_ARN: !Ref PublicKeySecretArn
+
+Resources:
+  CryptoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: sdd-crypto-api-sam
+      StageName: !Ref StageName
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  EncryptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: lambdas/encrypt/handler.handler
+      Description: Receives JSON payload, signs JWT (RS256) and encrypts as JWE
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Ref PrivateKeySecretArn
+                - !Ref PublicKeySecretArn
+      Events:
+        EncryptApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CryptoApi
+            Path: /encrypt
+            Method: post
+
+  DecryptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: lambdas/decrypt/handler.handler
+      Description: Receives JWE, decrypts it and verifies inner JWT signature
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Ref PrivateKeySecretArn
+                - !Ref PublicKeySecretArn
+      Events:
+        DecryptApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CryptoApi
+            Path: /decrypt
+            Method: post
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for the deployed API stage
+    Value: !Sub https://${CryptoApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}
+  EncryptFunctionName:
+    Description: Encrypt Lambda function name
+    Value: !Ref EncryptFunction
+  DecryptFunctionName:
+    Description: Decrypt Lambda function name
+    Value: !Ref DecryptFunction

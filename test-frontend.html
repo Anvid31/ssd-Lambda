@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SDD Crypto Lambdas - Test</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .icon {
+        font-size: 1.8rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      textarea,
+      input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: "Courier New", monospace;
+        margin-bottom: 15px;
+        transition: border-color 0.3s;
+      }
+
+      textarea:focus,
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        width: 100%;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        word-break: break-all;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+      }
+
+      .result.success {
+        background: #d4edda;
+        border: 2px solid #28a745;
+        color: #155724;
+      }
+
+      .result.error {
+        background: #f8d7da;
+        border: 2px solid #dc3545;
+        color: #721c24;
+      }
+
+      .result-label {
+        font-weight: bold;
+        margin-bottom: 8px;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      .loader {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .flow-test {
+        display: grid;
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .api-info {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: #666;
+      }
+
+      .api-info code {
+        background: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #667eea;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 SDD Crypto Lambdas</h1>
+
+      <div class="card">
+        <div class="api-info">
+          <strong>API Base URL:</strong>
+          <code id="apiUrl"
+            >https://eypclu4c08.execute-api.us-east-1.amazonaws.com/dev</code
+          >
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon">🔒</span> Encrypt (JWT + JWE)</h2>
+        <form id="encryptForm">
+          <label for="encryptData">Datos a encriptar (JSON):</label>
+          <textarea
+            id="encryptData"
+            placeholder='{"data": "test", "user": "anvid"}'
+          ></textarea>
+
+          <button type="submit" id="encryptBtn">
+            <span id="encryptBtnText">🔒 Encriptar</span>
+          </button>
+        </form>
+
+        <div id="encryptResult"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon">🔓</span> Decrypt (JWE → JWT)</h2>
+        <form id="decryptForm">
+          <label for="decryptToken">Token JWE:</label>
+          <textarea
+            id="decryptToken"
+            placeholder="eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ..."
+          ></textarea>
+
+          <button type="submit" id="decryptBtn">
+            <span id="decryptBtnText">🔓 Desencriptar</span>
+          </button>
+        </form>
+
+        <div id="decryptResult"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon">🔄</span> Flujo Completo (Encrypt → Decrypt)</h2>
+        <form id="flowForm">
+          <label for="flowData">Datos de prueba (JSON):</label>
+          <textarea
+            id="flowData"
+            placeholder='{"message": "Hello World!", "timestamp": "2026-06-01"}'
+          ></textarea>
+
+          <button type="submit" id="flowBtn">
+            <span id="flowBtnText">🔄 Ejecutar Flujo Completo</span>
+          </button>
+        </form>
+
+        <div id="flowResult"></div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE =
+        "https://eypclu4c08.execute-api.us-east-1.amazonaws.com/dev";
+
+      // Encrypt Form
+      document
+        .getElementById("encryptForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("encryptBtn");
+          const btnText = document.getElementById("encryptBtnText");
+          const resultDiv = document.getElementById("encryptResult");
+
+          try {
+            const data =
+              document.getElementById("encryptData").value || '{"data":"test"}';
+            const payload = JSON.parse(data);
+
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loader"></span> Encriptando...';
+            resultDiv.innerHTML = "";
+
+            const response = await fetch(`${API_BASE}/encrypt`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.token) {
+              resultDiv.className = "result success";
+              resultDiv.innerHTML = `
+                        <div class="result-label">✅ Token JWE generado:</div>
+                        <div>${result.token}</div>
+                    `;
+              // Auto-copiar al campo decrypt
+              document.getElementById("decryptToken").value = result.token;
+            } else {
+              throw new Error(result.error || "Error desconocido");
+            }
+          } catch (error) {
+            resultDiv.className = "result error";
+            resultDiv.innerHTML = `
+                    <div class="result-label">❌ Error:</div>
+                    <div>${error.message}</div>
+                `;
+          } finally {
+            btn.disabled = false;
+            btnText.textContent = "🔒 Encriptar";
+          }
+        });
+
+      // Decrypt Form
+      document
+        .getElementById("decryptForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("decryptBtn");
+          const btnText = document.getElementById("decryptBtnText");
+          const resultDiv = document.getElementById("decryptResult");
+
+          try {
+            const token = document.getElementById("decryptToken").value.trim();
+
+            if (!token) {
+              throw new Error("Token vacío");
+            }
+
+            btn.disabled = true;
+            btnText.innerHTML =
+              '<span class="loader"></span> Desencriptando...';
+            resultDiv.innerHTML = "";
+
+            const response = await fetch(`${API_BASE}/decrypt`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.payload) {
+              resultDiv.className = "result success";
+              resultDiv.innerHTML = `
+                        <div class="result-label">✅ Payload desencriptado:</div>
+                        <pre>${JSON.stringify(result.payload, null, 2)}</pre>
+                    `;
+            } else {
+              throw new Error(result.error || "Error desconocido");
+            }
+          } catch (error) {
+            resultDiv.className = "result error";
+            resultDiv.innerHTML = `
+                    <div class="result-label">❌ Error:</div>
+                    <div>${error.message}</div>
+                `;
+          } finally {
+            btn.disabled = false;
+            btnText.textContent = "🔓 Desencriptar";
+          }
+        });
+
+      // Flow Test
+      document
+        .getElementById("flowForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("flowBtn");
+          const btnText = document.getElementById("flowBtnText");
+          const resultDiv = document.getElementById("flowResult");
+
+          try {
+            const data =
+              document.getElementById("flowData").value || '{"test":"data"}';
+            const payload = JSON.parse(data);
+
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loader"></span> Ejecutando...';
+            resultDiv.innerHTML = "";
+
+            // Step 1: Encrypt
+            btnText.innerHTML =
+              '<span class="loader"></span> Paso 1/2: Encriptando...';
+            const encryptResponse = await fetch(`${API_BASE}/encrypt`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            const encryptResult = await encryptResponse.json();
+
+            if (!encryptResponse.ok || !encryptResult.token) {
+              throw new Error(
+                "Falló la encriptación: " +
+                  (encryptResult.error || "Error desconocido"),
+              );
+            }
+
+            // Step 2: Decrypt
+            btnText.innerHTML =
+              '<span class="loader"></span> Paso 2/2: Desencriptando...';
+            const decryptResponse = await fetch(`${API_BASE}/decrypt`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: encryptResult.token }),
+            });
+
+            const decryptResult = await decryptResponse.json();
+
+            if (!decryptResponse.ok || !decryptResult.payload) {
+              throw new Error(
+                "Falló la desencriptación: " +
+                  (decryptResult.error || "Error desconocido"),
+              );
+            }
+
+            resultDiv.className = "result success";
+            resultDiv.innerHTML = `
+                    <div class="result-label">✅ Flujo completo exitoso</div>
+                    <div style="margin-top: 15px;">
+                        <strong>📤 Datos originales:</strong>
+                        <pre>${JSON.stringify(payload, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <strong>🔒 Token JWE (${encryptResult.token.length} caracteres):</strong>
+                        <div style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 5px;">
+                            ${encryptResult.token}
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <strong>📥 Payload recuperado:</strong>
+                        <pre>${JSON.stringify(decryptResult.payload, null, 2)}</pre>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 4px;">
+                        <strong>✓ Verificación:</strong> Los datos coinciden perfectamente
+                    </div>
+                `;
+          } catch (error) {
+            resultDiv.className = "result error";
+            resultDiv.innerHTML = `
+                    <div class="result-label">❌ Error en el flujo:</div>
+                    <div>${error.message}</div>
+                `;
+          } finally {
+            btn.disabled = false;
+            btnText.textContent = "🔄 Ejecutar Flujo Completo";
+          }
+        });
+
+      // Set default data
+      document.getElementById("encryptData").value =
+        '{\n  "data": "test",\n  "user": "anvid"\n}';
+      document.getElementById("flowData").value =
+        '{\n  "message": "Hello World!",\n  "timestamp": "2026-06-01",\n  "project": "sdd-crypto-lambdas"\n}';
+    </script>
+  </body>
+</html>
