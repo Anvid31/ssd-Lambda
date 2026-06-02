@@ -112,6 +112,52 @@ npm run test:flow
 npm run test:watch
 ```
 
+### Pruebas en AWS Console
+
+#### 1. Prueba de Lambda Encrypt
+
+Desde la consola de AWS Lambda, selecciona la función `EncryptFunction` y usa el siguiente evento de prueba:
+
+```json
+{
+  "body": "{\"data\":\"test value\",\"user\":\"admin\"}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "httpMethod": "POST"
+}
+```
+
+![Prueba Lambda Encrypt](./screenshots/lambda-encrypt-test.png)
+
+#### 2. Prueba de Lambda Decrypt
+
+Usando el token obtenido del paso anterior, prueba la función `DecryptFunction`:
+
+```json
+{
+  "body": "{\"token\":\"eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ...\"}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "httpMethod": "POST"
+}
+```
+
+![Prueba Lambda Decrypt](./screenshots/lambda-decrypt-test.png)
+
+#### 3. Logs en CloudWatch
+
+Verifica los logs de ejecución en CloudWatch para debugging y monitoreo:
+
+![CloudWatch Logs](./screenshots/cloudwatch-logs.png)
+
+#### 4. Métricas de rendimiento
+
+Revisa las métricas de invocaciones, duración y errores en CloudWatch:
+
+![Métricas CloudWatch](./screenshots/cloudwatch-metrics.png)
+
 ### Prueba con frontend
 
 Abre `test-frontend.html` en tu navegador para una interfaz visual de prueba.
